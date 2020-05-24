@@ -19,3 +19,5 @@
 5) Deep Learning Prediction of New Sequences ?
 6) Automatic Recommendation of Retargeting Strategy ?
 7) Add more behavioural parameters to the sequence .
+8) Automatic Collection of Data  via external source
+9) Add lagged effect of campagin activity (might influence campagian activity) ?

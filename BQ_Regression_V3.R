@@ -1,10 +1,8 @@
 #### IMPORT ALL LIBRARIES + FUNCTION DEFINITIONS ####
 devtools::install_github("tidyverse/multidplyr")
-
-source("C:/Users/White/abel/library_wrapper.R")
-
+setwd("C:/Users/White/May 2020 Abel/2020 Abel")
+source("library_wrapper.R")
 TIME_RUN <- Sys.time()
-setwd("C:/Users/White/abel")
 
 local_data <- fread("C:/Users/White/OneDrive/1D Downloads/nba-playbyplay-data-20182019/NBA-PBP_2016-2017.csv")
 local_data2 <- local_data[,c("URL","Shooter","ShotType","Assister","ShotOutcome","Date","WinningTeam","ShotDist")]
@@ -64,7 +62,7 @@ local4 <- local3_table[,c("combination",".id","revenue","Date","ShotType")]
 local4 <- subset(local4,local4$ShotType != "")
 ALL_FLAGS <- local4
 colnames(ALL_FLAGS) <- c("id","rank","revenue","start_time_utc","channel")
-source("C:/Users/White/abel/overview.R")
+source("overview.R")
 #source("C:/Users/White/abel/bigquery_pull_ga_reports.R")
 
 library(multidplyr)
@@ -75,7 +73,7 @@ repeat{
   {
     break
   }
-  source("C:/Users/White/abel/propensity_calculations.R")
+  source("propensity_calculations.R")
   
   gc(TRUE)
   library(multidplyr)
@@ -85,7 +83,7 @@ repeat{
   ## Subsetting for columns that we need for processing
   ALL_FLAGS <- ALL_FLAGS[,c("id","revenue","channel","rank","start_time_utc")]
   
-  source("C:/Users/White/abel/summary_data.R")
+  source("summary_data.R")
   
   
   
@@ -109,10 +107,10 @@ repeat{
   # Encode Channels
   unique_channels$encode <- as.numeric(unique_channels$encode)
   #source("C:/Users/White/abel/markov_chain_attribution.R")
-  source("C:/Users/White/abel/tranpose_prob.R")
+  source("tranpose_prob.R")
   minsupp <- runif(1,0.10,0.3) %>% round(digits = 2)
   minsupp <- 0.5
-  source("C:/Users/White/abel/association_rules.R")
+  source("association_rules.R")
   count = count + 1
 }
 ## Adjust Support Threshold -> redo support
@@ -124,7 +122,7 @@ high_rules <- fread(csv_path2)
 all_rules <- rbind(high_rules,low_rules)
 fwrite(all_rules,)
 
-source("C:/Users/White/abel/logistic_model.R")
+source("logistic_model.R")
 saveRDS(glmnetModel, "./logistic_model_v2.rds")
 
 ## Import New Trainning Data####

@@ -9,6 +9,7 @@ library(caret)
 library(e1071)
 library(neuralnet)
 library(GGally)
+library(data.table)
 setwd("C:/Users/White/abel")
 train <- list.files()
 temp = list.files(pattern  =  "train")
@@ -103,6 +104,11 @@ test_table$difference <- if_else(test_table$Predictions == test_table$Actuals,"Y
 misClasificError <- mean(glmnetPredict != test_flags)
 print(paste('Accuracy',1-misClasificError))
 summary(glmnetModel)
+
+## Examine Base Model (Bias,Variance,Overfitting,Underfitting,Heteredoskedacity,Predictive Power)
+## IF Low Results , try ensembling
+
+
 if(ENESEMBLE_FLAG == 1)
 {
 # Random forests
@@ -157,6 +163,20 @@ print(paste('Accuracy',1-misClasificError))
 
 
 ## Support Vector Machine
+data_svm <- df.expanded
+Index <- sample(1:nrow(data_svm), 0.7*nrow(data_svm))  # row indices for training data
+svm_train <- data_svm[Index, ]  # model training data
+svm_test <- data_svm[-Index, ] 
+svm.model <- svm(svm_train$FLAG ~.,data = svm_train)
+print(svm.model)
+pred <- predict(svm.model,svm_test)
+svm_table <- table(pred,svm_test$FLAG) %>% as.data.frame()
+colnames(svm_table) <-  c("Predictions","Actuals","Count")
+svm_table$difference <- ifelse(svm_table$Predictions == svm_table$Actuals,1,0)
+svm_table <- aggregate(svm_table$Count,by = list(svm_table$difference),sum)
+total_sum <- sum(svm_table$x)
+correct_sum <- sum(svm_table[2,2])
+svm_accuracy <- correct_sum/total_sum
 }
 
 

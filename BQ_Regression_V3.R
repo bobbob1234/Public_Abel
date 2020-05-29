@@ -2,11 +2,23 @@
 devtools::install_github("tidyverse/multidplyr")
 setwd("C:/Users/White/May 2020 Abel/2020 Abel")
 source("library_wrapper.R")
+attach(iris)
 TIME_RUN <- Sys.time()
+MIS_FLAG <- ""
+local_data <- fread("C:/Users/White/OneDrive/1D Downloads/nba-playbyplay-data-20182019/NBA-PBP_2016-2017.csv") %>% as.data.frame()
 
-local_data <- fread("C:/Users/White/OneDrive/1D Downloads/nba-playbyplay-data-20182019/NBA-PBP_2016-2017.csv")
-local_data2 <- local_data[,c("URL","Shooter","ShotType","Assister","ShotOutcome","Date","WinningTeam","ShotDist")]
-local_data2$combination <- paste(local_data2$Shooter,local_data2$Assister,sep = ",")
+combination_table <- list()
+
+for(i in 1:ncol(local_data))
+{
+  combination_table[[i]] <- table(local_data[,i]) %>% as.data.frame()
+  combination_table[[i]]$data_type <- class(local_data[,i])
+}
+
+
+local_data2 <- local_data[,c("URL","Shooter","ShotType","Assister","ShotOutcome","Date","WinningTeam","ShotDist","Rebounder","ReboundType")]
+
+local_data2$combination <- paste(local_data2$Assister,local_data2$Shooter,local_data2$Rebounder,local_data2$ReboundType)
 local_data2$Date <- format(mdy(local_data2$Date),"%Y-%m-%d")
 game_table <- unique(local_data$URL) %>% as.data.frame()
 game_table$encode <- ""

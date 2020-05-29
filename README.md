@@ -21,3 +21,4 @@
 7) Add more behavioural parameters to the sequence .
 8) Automatic Collection of Data  via external source
 9) Add lagged effect of campagin activity (might influence campagian activity) ?
+10) Add support for negative association rules

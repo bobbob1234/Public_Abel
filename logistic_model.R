@@ -10,6 +10,7 @@ library(e1071)
 library(neuralnet)
 library(GGally)
 library(data.table)
+library(tree)
 setwd("C:/Users/White/abel")
 train <- list.files()
 temp = list.files(pattern  =  "train")
@@ -115,6 +116,7 @@ if(ENESEMBLE_FLAG == 1)
 # Bayesian networks
 # Support vector machines
 # Probit model
+  
 ctrl <- trainControl(
     method = "cv",
     p = 0.70,
@@ -123,14 +125,32 @@ ctrl <- trainControl(
     allowParallel = TRUE
   )
 
-dtree_fit <- train(FLAG~., data = df.expanded, method = "rpart",
-                   trControl = ctrl)
 
-test_table_dt <- dtree_fit$pred
-test_table_dt$Predictions <- test_table_dt$pred
-test_table_dt$Actuals <- test_table_dt$obs
+ensemble_data <- df.expanded
+
+## Create Sets 
+spec = c(train = .6, test = .2, validate = .2)
+
+g = sample(cut(
+  seq(nrow(ensemble_data)), 
+  nrow(ensemble_data)*cumsum(c(0,spec)),
+  labels = names(spec)
+))
+
+ensemble_data_frames = split(ensemble_data, g)
+
+
+
+ensemble_train <- ensemble_data_frames$train
+
+ensemble_test <- ensemble_data_frames$test
+ensemble_validate <- ensemble_data_frames$validate
+
+dtree_fit <- train(FLAG~., data = ensemble_train, method = "rpart",
+                   trControl = ctrl)
+dtree_pred <- predict(dtree_fit,ensemble_test,type = "raw")
+test_table_dt <- data.frame(Predictions = dtree_pred,Actuals = ensemble_test$FLAG)
 test_table_dt$difference <- if_else(test_table_dt$Predictions == test_table_dt$Actuals,0,1)
-bias <- mean(test_table_dt$Actuals) - test_table_dt$Predictions
 
 misClasificError <- mean(test_table_dt$difference)
 print(paste('Accuracy',1-misClasificError))
@@ -138,19 +158,30 @@ print(paste('Accuracy',1-misClasificError))
 
 ## Neural Networks
 
-data_nn <- df.expanded
+data_nn <- ensemble_train
 dmy <- dummyVars("~ .", data = data_nn, fullRank = T)
 data_nn <- data.frame(predict(dmy, newdata = data_nn))
-Index <- sample(1:nrow(data_nn), 0.7*nrow(data_nn))  # row indices for training data
-nn_train <- data_nn[Index, ]  # model training data
-nn_test <- data_nn[-Index, ] 
+nn_train <- data_nn
 last_col  <- ncol(nn_train)
 colnames(nn_train)[last_col] <- "FLAG"
+
+data_nn <- ensemble_test
+dmy <- dummyVars("~ .", data = data_nn, fullRank = T)
+data_nn <- data.frame(predict(dmy, newdata = data_nn))
+nn_test <- data_nn
+last_col  <- ncol(nn_test)
 colnames(nn_test)[last_col] <- "FLAG"
+
+data_nn <- ensemble_validate
+dmy <- dummyVars("~ .", data = data_nn, fullRank = T)
+data_nn <- data.frame(predict(dmy, newdata = data_nn))
+nn_valid <- data_nn
+last_col  <- ncol(nn_valid)
+colnames(nn_valid)[last_col] <- "FLAG"
 
 feature_names <- names(nn_train)
 f <- as.formula(paste("FLAG ~", paste(feature_names[!feature_names %in% "FLAG"], collapse = " + ")))
-nn <- neuralnet(f,data = data_nn,hidden = c(1,1),linear.output = F)
+nn <- neuralnet(f,data = nn_train,hidden = c(1,1),linear.output = F)
 results <- nn$result.matrix %>% as.data.frame()
 nn_weights <- nn$generalized.weights
 
@@ -163,21 +194,45 @@ print(paste('Accuracy',1-misClasificError))
 
 
 ## Support Vector Machine
-data_svm <- df.expanded
-Index <- sample(1:nrow(data_svm), 0.7*nrow(data_svm))  # row indices for training data
-svm_train <- data_svm[Index, ]  # model training data
-svm_test <- data_svm[-Index, ] 
+svm_train <- ensemble_train
+svm_test <- ensemble_test
 svm.model <- svm(svm_train$FLAG ~.,data = svm_train)
-print(svm.model)
-pred <- predict(svm.model,svm_test)
-svm_table <- table(pred,svm_test$FLAG) %>% as.data.frame()
+pred_svm <- predict(svm.model,svm_test)
+svm_table <- table(pred_svm,svm_test$FLAG) %>% as.data.frame()
 colnames(svm_table) <-  c("Predictions","Actuals","Count")
 svm_table$difference <- ifelse(svm_table$Predictions == svm_table$Actuals,1,0)
 svm_table <- aggregate(svm_table$Count,by = list(svm_table$difference),sum)
 total_sum <- sum(svm_table$x)
 correct_sum <- sum(svm_table[2,2])
 svm_accuracy <- correct_sum/total_sum
+
+
+predSvm <- predict(svm.model,ensemble_validate)
+rownames(pred_svm) <- 1:length(predSvm)
+predDT <- predict(dtree_fit,ensemble_validate,type = "raw")
+predNN <- compute(nn,nn_valid)
+predNN2 <-  sapply(predNN$net.result,round,digits = 0)
+predNN2 <- ifelse(predNN2 == 1,"Y","N")
+predNN2<- as.factor(predNN2)
+
+predDF <- data.frame(predDT,predNN2, FLAG = ensemble_test$FLAG, stringsAsFactors = T) %>% as.data.frame()
+
+
+glm_model_stack <- glm(FLAG ~ ., data = predDF, family = binomial(link = 'logit'))
+
+summary(glm_model_stack)
+coef(glm_model_stack)
+
+glm_predictions <- glm_model_stack %>% predict(ensemble_test[,c("FLAG")],type = "response")
+test_table_ensemble <- data.frame(Predictions = glm_predictions,Actuals = ensemble_test$FLAG)
+test_table_ensemble$Predictions <- round(test_table_ensemble$Predictions,digits = 0)
+test_table_ensemble$Actuals<- ifelse(test_table_ensemble$Actuals == "Y",1,0)
+test_table_ensemble$difference <- ifelse(test_table_ensemble$Predictions ==  test_table_ensemble$Actuals,0,1)
+misClasificError <- mean(test_table_ensemble$difference)
+print(paste('Accuracy',1-misClasificError))
 }
+
+
 
 
 

@@ -136,6 +136,8 @@ fwrite(all_rules,)
 
 source("logistic_model.R")
 saveRDS(glmnetModel, "./logistic_model_v2.rds")
+saveRDS(glm_model_stack, "./ensemble_model.rds")
+
 
 ## Import New Trainning Data####
 local_data <- read.csv("C:/Users/White/OneDrive/1D Downloads/nba-playbyplay-data-20182019/NBA-PBP-2017-2018.csv")

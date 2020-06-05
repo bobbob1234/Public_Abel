@@ -2,12 +2,56 @@
 devtools::install_github("tidyverse/multidplyr")
 setwd("C:/Users/White/May 2020 Abel/2020 Abel")
 source("library_wrapper.R")
-attach(iris)
 TIME_RUN <- Sys.time()
 MIS_FLAG <- ""
 local_data <- fread("C:/Users/White/OneDrive/1D Downloads/nba-playbyplay-data-20182019/NBA-PBP_2016-2017.csv") %>% as.data.frame()
 
-combination_table <- list()
+
+pressure_table <- local_data[,c("URL","SecLeft","HomePlay","HomeScore","AwayPlay","AwayScore")]
+
+## Defensive and Offensive Pressure Calculations
+
+defense_counter <- 0
+offense_counter <- 0
+pressure_table$defensive_pressure <- ""
+pressure_table$offensive_pressure <- ""
+for(i in 1:nrow(pressure_table))
+{
+ 
+  if(pressure_table[i,"HomePlay"] == "" || pressure_table[i,"AwayPlay"] == "")
+  {
+    defense_counter <- defense_counter + 1
+    
+    if(i == 1)
+    {
+      
+    }
+    if(i > 1)
+    {
+    if(pressure_table[i,"Home Score"] == pressure_table[(i-1),"Home Score"] || pressure_table[i,"Away Score"] == pressure_table[(i-1),"Away Score"])
+    {
+      offense_counter <- 0
+    }
+    }
+  }
+  if(pressure_table[i,"HomePlay"]!= "" || pressure_table[i,"AwayPlay"] != "")
+  {
+    offense_counter <- offense_counter + 1
+    if(i == 1)
+    {
+      
+    }
+    if(i > 1)
+    if(pressure_table[i,"Home Score"] != pressure_table[(i-1),"Home Score"] || pressure_table[i,"Away Score"] != pressure_table[(i-1),"Away Score"])
+       {
+         offense_counter <- 0
+       }
+      
+  }
+  pressure_table$defensive_pressure[i] <- defense_counter
+  pressure_table$offensive_pressure[i] <- offense_counter
+ 
+}
 
 for(i in 1:ncol(local_data))
 {
@@ -72,6 +116,8 @@ local3_table_2_split$.id <- 1
 local4_append <- rbind(local3_table_1_split2,local3_table_2_split)
 local4 <- local3_table[,c("combination",".id","revenue","Date","ShotType")]
 local4 <- subset(local4,local4$ShotType != "")
+
+
 ALL_FLAGS <- local4
 colnames(ALL_FLAGS) <- c("id","rank","revenue","start_time_utc","channel")
 source("overview.R")

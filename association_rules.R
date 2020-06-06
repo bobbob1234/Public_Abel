@@ -10,46 +10,69 @@ library(arulesViz)
 data_frame_class_abf <- class(abf)
 rules_2 <- as(abf,"transactions")
 purchases <- rbind(rules_2)
-MIS_FUNCTION <- function(transactions,)
-function (data, parameter = NULL, appearance = NULL, control = NULL) 
+# MIS_FUNCTION <- function(transactions,)
+# function (data, parameter = NULL, appearance = NULL, control = NULL) 
+# {
+#   data <- as(data, "transactions")
+#   items <- data@data
+#   if (is(appearance, "list")) 
+#     appearance <- as(c(appearance, list(labels = itemLabels(data))), 
+#                      "APappearance")
+#   appearance <- as(appearance, "APappearance")
+#   control <- as(control, "APcontrol")
+#   parameter <- as(parameter, "APparameter")
+#   if (control@verbose) {
+#     cat("Apriori\n")
+#     cat("\nParameter specification:\n")
+#     show(parameter)
+#     cat("\nAlgorithmic control:\n")
+#     show(control)
+#   }
+#   abs_supp <- as.integer(parameter@support * length(data))
+#   if (control@verbose) {
+#     cat("\nAbsolute minimum support count:", abs_supp, "\n\n")
+#   }
+#   result <- .Call(R_rapriori, items@p, items@i, items@Dim, 
+#                   parameter, control, appearance, data@itemInfo)
+#   call <- match.call()
+#   result@info <- list(data = call$data, ntransactions = length(data), 
+#                       support = parameter@support, confidence = parameter@confidence)
+#   quality(result)$count <- as.integer(round(quality(result)$support * 
+#                                               length(data)))
+#   if (is(result, "rules")) {
+#     validObject(result@lhs@data)
+#     validObject(result@rhs@data)
+#   }
+#   else {
+#     validObject(result@items@data)
+#   }
+#   result
+# }
+unique_rule_names <- colnames(abf)
+unique_trans <- table(abf) %>% as.data.frame()
+unique_trans$ID <- 1:nrow(unique_trans)
+compare_df <- function(x,y)
 {
-  data <- as(data, "transactions")
-  items <- data@data
-  if (is(appearance, "list")) 
-    appearance <- as(c(appearance, list(labels = itemLabels(data))), 
-                     "APappearance")
-  appearance <- as(appearance, "APappearance")
-  control <- as(control, "APcontrol")
-  parameter <- as(parameter, "APparameter")
-  if (control@verbose) {
-    cat("Apriori\n")
-    cat("\nParameter specification:\n")
-    show(parameter)
-    cat("\nAlgorithmic control:\n")
-    show(control)
+  comp_x <- x[i,unique_rule_names]
+  comp_y <- y[i,unique_rule_names]
+  
+  if(identical(comp_x,comp_y))
+  {
+    y$ID
   }
-  abs_supp <- as.integer(parameter@support * length(data))
-  if (control@verbose) {
-    cat("\nAbsolute minimum support count:", abs_supp, "\n\n")
-  }
-  result <- .Call(R_rapriori, items@p, items@i, items@Dim, 
-                  parameter, control, appearance, data@itemInfo)
-  call <- match.call()
-  result@info <- list(data = call$data, ntransactions = length(data), 
-                      support = parameter@support, confidence = parameter@confidence)
-  quality(result)$count <- as.integer(round(quality(result)$support * 
-                                              length(data)))
-  if (is(result, "rules")) {
-    validObject(result@lhs@data)
-    validObject(result@rhs@data)
-  }
-  else {
-    validObject(result@items@data)
-  }
-  result
+  
 }
+abf$pasted <- compare_df(abf,unique_trans)
+support_combinations <- seq(0.01,1,0.01)
+confidence_combinations <-seq(0.01,1,0.01)
+rule_length_combinations <- seq(1,14,1)
+combinations
+ar_parameter_combinations <- permutations(n = 3,r=3,)
+ruleset <- stratified(abf,abf$pasted,0.05)
+ruleset$pasted <- NULL
 
-rulesabfrules <- apriori (abf, parameter = list(supp = 0.9, conf = 0.8,maxlen = 4))
+while()
+rulesabfrules <- apriori (ruleset, parameter = list(supp = 0.05,maxlen = 1))
 
 rulesabf <- (as(rulesabfrules,"data.frame"))
 

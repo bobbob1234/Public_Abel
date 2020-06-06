@@ -58,4 +58,4 @@ if(SAMPLE_RUN == "N")
 {
   ALL_FLAGS <- no
 }
-rm(df,df2,df3,ALL_FLAGS2,ALL_FLAGS3,df,df4,df5,df6,xcols,quartile_stats,df7)
+rm(df,df2,df3,ALL_FLAGS2,ALL_FLAGS3,df,df4,df5,xcols,quartile_stats)

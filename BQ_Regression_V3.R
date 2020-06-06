@@ -7,51 +7,45 @@ MIS_FLAG <- ""
 local_data <- fread("C:/Users/White/OneDrive/1D Downloads/nba-playbyplay-data-20182019/NBA-PBP_2016-2017.csv") %>% as.data.frame()
 
 
-pressure_table <- local_data[,c("URL","SecLeft","HomePlay","HomeScore","AwayPlay","AwayScore")]
+pressure_table <- local_data[,c("URL","SecLeft","HomePlay","HomeScore","AwayPlay","AwayScore","ShotOutcome")]
+pressure_table$ShotOutcome2 <- pressure_table$ShotOutcome
+pressure_table$ShotOutcome2 <- ifelse(pressure_table$ShotOutcome2 == "","miss",pressure_table$ShotOutcome2)
 
 ## Defensive and Offensive Pressure Calculations
 
 defense_counter <- 0
-offense_counter <- 0
 pressure_table$defensive_pressure <- ""
-pressure_table$offensive_pressure <- ""
+pressure_table$offensive_pressure <- sequence(rle(as.character(pressure_table$ShotOutcome2))$lengths)
 for(i in 1:nrow(pressure_table))
 {
  
+  
+## Defensive Pressure Calculations
   if(pressure_table[i,"HomePlay"] == "" || pressure_table[i,"AwayPlay"] == "")
   {
     defense_counter <- defense_counter + 1
     
-    if(i == 1)
-    {
-      
-    }
-    if(i > 1)
-    {
-    if(pressure_table[i,"Home Score"] == pressure_table[(i-1),"Home Score"] || pressure_table[i,"Away Score"] == pressure_table[(i-1),"Away Score"])
-    {
-      offense_counter <- 0
-    }
-    }
   }
   if(pressure_table[i,"HomePlay"]!= "" || pressure_table[i,"AwayPlay"] != "")
   {
-    offense_counter <- offense_counter + 1
     if(i == 1)
     {
       
     }
     if(i > 1)
-    if(pressure_table[i,"Home Score"] != pressure_table[(i-1),"Home Score"] || pressure_table[i,"Away Score"] != pressure_table[(i-1),"Away Score"])
+    if(pressure_table[i,"HomeScore"] != pressure_table[(i-1),"HomeScore"] || pressure_table[i,"AwayScore"] != pressure_table[(i-1),"AwayScore"])
        {
-         offense_counter <- 0
+      if(i > 3)
+         defense_counter <- mean(pressure_table[i:i+3,"HomeScore"])
+      if(defense_counter < pressure_table[])
        }
       
   }
   pressure_table$defensive_pressure[i] <- defense_counter
-  pressure_table$offensive_pressure[i] <- offense_counter
- 
+
 }
+
+pressure_table$price <- pressure_table$offensive_pressure * as.numeric(pressure_table$defensive_pressure)
 
 for(i in 1:ncol(local_data))
 {
@@ -166,8 +160,6 @@ repeat{
   unique_channels$encode <- as.numeric(unique_channels$encode)
   #source("C:/Users/White/abel/markov_chain_attribution.R")
   source("tranpose_prob.R")
-  minsupp <- runif(1,0.10,0.3) %>% round(digits = 2)
-  minsupp <- 0.5
   source("association_rules.R")
   count = count + 1
 }

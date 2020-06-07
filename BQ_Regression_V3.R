@@ -118,22 +118,19 @@ source("overview.R")
 #source("C:/Users/White/abel/bigquery_pull_ga_reports.R")
 
 library(multidplyr)
-count <- 0
-SAMPLE_RUN <- "Y"
-repeat{
-  if(count == 2)
-  {
-    break
-  }
+library(Rfast)
+
+
   source("propensity_calculations.R")
-  
-  gc(TRUE)
-  library(multidplyr)
-  library(Rfast)
-  
-  ALL_FLAGS2 <- ALL_FLAGS
+  holding_frames <- list()
+  holding_frames[[1]] <- ys
+  holding_frames[[2]] <- no
+
+for(data_frame_count in 1:length(holding_frames))
+{
+  ALL_FLAGS2 <- holding_frames[[data_frame_count]] %>% as.data.frame()
   ## Subsetting for columns that we need for processing
-  ALL_FLAGS <- ALL_FLAGS[,c("id","revenue","channel","rank","start_time_utc")]
+  ALL_FLAGS <- ALL_FLAGS2[,c("id","revenue","channel","rank","start_time_utc")]
   
   source("summary_data.R")
   
@@ -141,10 +138,10 @@ repeat{
   
   
   listtchs <- table(ALL_FLAGS$rank)%>% as.data.frame()
-  
-  tchs_above_thresh <- subset(listtchs,listtchs$Freq > 100) ## was 1000
-  tchs_above_thresh$Var1 <- as.numeric(tchs_above_thresh$Var1)
-  maxtchs_above_tresh <- max(tchs_above_thresh$Var1)
+
+   tchs_above_thresh <- subset(listtchs,listtchs$Freq > 10) ## was 1000
+   tchs_above_thresh$Var1 <- as.numeric(tchs_above_thresh$Var1)
+   maxtchs_above_tresh <- max(tchs_above_thresh$Var1)
   unique_channels <- unique(ALL_FLAGS$channel) %>% as.data.frame()
   unique_channels$encode <- ""
   
@@ -160,9 +157,12 @@ repeat{
   unique_channels$encode <- as.numeric(unique_channels$encode)
   #source("C:/Users/White/abel/markov_chain_attribution.R")
   source("tranpose_prob.R")
+}
+  rm(ALL_FLAGS,ALL_FLAGS2,holding_frames,local_data,local_data2,local3_table,local3_table_1_split,local3_table_1_split_list,local3_table_1_split2,local3_table_2_split,local4,local4_append,pressure_table,no,ys)
+  gc(TRUE)
   source("association_rules.R")
   count = count + 1
-}
+
 ## Adjust Support Threshold -> redo support
 csv_path
 csv_path2 <- gsub("low","high",csv_path)

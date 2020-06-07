@@ -121,3 +121,11 @@ abf <- df9
 rm(df7,df6,df5,df4,df3,df2,df)
 abf[abf == ""] <- NA
 abf <- apply(abf,2,as.factor) %>% as.data.frame()
+if(data_frame_count == 1)
+{
+  abf_y <<- abf
+}
+if(data_frame_count == 2)
+{
+  abf_n <<- abf
+}

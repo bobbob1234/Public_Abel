@@ -1,7 +1,3 @@
-#ALL_FLAGS <- fread(w_d3)
-
-
-
 ALL_FLAGS$id <-gsub("-.*","",ALL_FLAGS$id)
 ALL_FLAGS2 <- ALL_FLAGS
 ### High/Value Customer Flag Setting
@@ -50,12 +46,4 @@ df7 <- subset(df5,df5$FLAG == "N")
 ALL_FLAGS3 <- rbind(df6,df7)
 ys <- df6
 no <- df7
-if(SAMPLE_RUN == "Y")
-{
-  ALL_FLAGS <- ys
-}
-if(SAMPLE_RUN == "N")
-{
-  ALL_FLAGS <- no
-}
 rm(df,df2,df3,ALL_FLAGS2,ALL_FLAGS3,df,df4,df5,xcols,quartile_stats)

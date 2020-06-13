@@ -2,6 +2,8 @@
 devtools::install_github("tidyverse/multidplyr")
 setwd("C:/Users/White/May 2020 Abel/2020 Abel")
 source("library_wrapper.R")
+install_version("dplyr", version = "0.8.4", repos = "http://cran.us.r-project.org")
+
 TIME_RUN <- Sys.time()
 MIS_FLAG <- ""
 local_data <- fread("C:/Users/White/OneDrive/1D Downloads/nba-playbyplay-data-20182019/NBA-PBP_2016-2017.csv") %>% as.data.frame()
@@ -139,7 +141,7 @@ for(data_frame_count in 1:length(holding_frames))
   
   listtchs <- table(ALL_FLAGS$rank)%>% as.data.frame()
 
-   tchs_above_thresh <- subset(listtchs,listtchs$Freq > 10) ## was 1000
+   tchs_above_thresh <- subset(listtchs,listtchs$Freq > 900) ## was 1000
    tchs_above_thresh$Var1 <- as.numeric(tchs_above_thresh$Var1)
    maxtchs_above_tresh <- max(tchs_above_thresh$Var1)
   unique_channels <- unique(ALL_FLAGS$channel) %>% as.data.frame()
@@ -161,7 +163,6 @@ for(data_frame_count in 1:length(holding_frames))
   rm(ALL_FLAGS,ALL_FLAGS2,holding_frames,local_data,local_data2,local3_table,local3_table_1_split,local3_table_1_split_list,local3_table_1_split2,local3_table_2_split,local4,local4_append,pressure_table,no,ys)
   gc(TRUE)
   source("association_rules.R")
-  count = count + 1
 
 ## Adjust Support Threshold -> redo support
 csv_path

@@ -76,7 +76,7 @@ names <- c("Ingestion","Transformation","Data Overview + Summary","Tuning","Attr
         
 
    ui <- dashboardPage(
-        dashboardHeader(title = "Simple tabs"),
+        dashboardHeader(title = "Abel Web App"),
         sidebar,
         body
     )

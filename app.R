@@ -3,6 +3,7 @@
 library(shiny)
 library(shinydashboard)
 library(shinyAce)
+library(shinyWidgets)
 
 names <- c("Ingestion","Transformation","Data Overview + Summary","Tuning","Attr","Model","Eval","Traceback")
  sidebar <-  dashboardSidebar(
@@ -57,10 +58,26 @@ names <- c("Ingestion","Transformation","Data Overview + Summary","Tuning","Attr
                 
         ),
         tabItem(tabName = names[2],
-        aceEditor("code",mode = "r"),
-        actionButton("eval", "Update UI"),
-        htmlOutput("shinyUI")
+        
+        h1("Data Transformation"),
+        
+        fluidRow(
+        column(2,
+        DT::dataTableOutput("original_dataset")
         ),
+        
+        fluidRow(
+            column(4,
+                   h2("Summary of The Dataset"),
+                   wellPanel(
+                       multiInput("x",label = "Choose an X",choices = frame()),
+                       multiInput("y",label = "Choose an Y",choices = frame()),
+                       
+                   
+        )
+        )
+        ),
+        
         
         tabItem(tabName = names[3]),
         tabItem(tabName = names[4]),
@@ -71,7 +88,7 @@ names <- c("Ingestion","Transformation","Data Overview + Summary","Tuning","Attr
         tabItem(tabName = names[9])
         
         )
-    )
+    )))
     
         
 
@@ -117,6 +134,10 @@ server <- function(input, output) {
         else {
             return(df)
         }
+        
+        ## Data Transformation
+        
+        output$frame <- reactive({output$contents()})
         
     })
     

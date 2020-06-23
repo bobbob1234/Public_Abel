@@ -1,94 +1,89 @@
 
+rm(list=ls())
+## Setting Upload Size to 1GB
+options(shiny.maxRequestSize = 1000000000)
+options("esquisse.display.mode" = "browser")
 
-library(shiny)
-library(shinydashboard)
-library(shinyAce)
-library(shinyWidgets)
-
-names <- c("Ingestion","Transformation","Data Overview + Summary","Tuning","Attr","Model","Eval","Traceback")
+source("rshiny_library.r")
+source("library_wrapper.r")
+source("Core Functions.r")
+names <- c("Ingestion","Orverview","Modelling","Traceback")
  sidebar <-  dashboardSidebar(
         sidebarMenu(
+          id = "tabs",
             menuItem("Data Ingestion",tabName = names[1]),
-            menuItem("Data Transformation",tabName = names[2]),
-            menuItem("Data Overview",tabName = names[3]),
-            menuItem("Hyper Parameter Tuning",tabName = names[4]),
-            menuItem("Attribution",tabName = names[5]),
-            menuItem("AR - Construction",tabName = names[6]),
-            menuItem("Modelling",tabName = names[7]),
-            menuItem("Model Evaluation",tabName = names[8]),
-            menuItem("Traceback + Results",tabName = names[9])
-            
-        )
+            menuItem("Data Overview",tabName = names[2]),
+            menuItem("Modelling",tabName = names[3]),
+            menuItem("Traceback",tabName = names[4])
+            )
     )
    body <-  dashboardBody(
-        tabItems(
+        tabItems( 
         tabItem(tabName = names[1],
-                fileInput("file1", "Choose CSV File",
-                          multiple = FALSE,
-                          accept = c("text/csv",
-                                     "text/comma-separated-values,text/plain",
-                                     ".csv")),
                 tags$hr(),
+                radioButtons("datasets","Pick a dataset/process to use when investigating this app:",c("NBA  Historical Play By Play Data" = "History","RealTime NBA Play by Play Data(not implemented yet)" = "Real-Time"),selected = character(0)),
                 
-                # Input: Checkbox if file has header ----
-                checkboxInput("header", "Header", TRUE),
-                
-                # Input: Select separator ----
-                radioButtons("sep", "Separator",
-                             choices = c(Comma = ",",
-                                         Semicolon = ";",
-                                         Tab = "\t"),
-                             selected = ","),
-                
-                # Input: Select quotes ----
-                radioButtons("quote", "Quote",
-                             choices = c(None = "",
-                                         "Double Quote" = '"',
-                                         "Single Quote" = "'"),
-                             selected = '"'),
-                
-                # Horizontal line ----
-                tags$hr(),
-                
-                # Input: Select number of rows to display ----
-                radioButtons("disp", "Display",
-                             choices = c(Head = "head",
-                                         All = "all"),
-                             selected = "head")
-                
+               
+        DT::dataTableOutput("contents")        
         ),
         tabItem(tabName = names[2],
         
-        h1("Data Transformation"),
-        
-        fluidRow(
-        column(2,
-        DT::dataTableOutput("original_dataset")
+        h1("Data Overview"),
+        tags$h2("Choose Global Data : send_to_global"),
+        chooseDataUI(id = "choose1"),
+          esquisserUI(
+            
+            id = "esquisse",
+            header = FALSE, # dont display gadget title
+            choose_data = TRUE, # dont display button to change data
+            container = esquisseContainer(height = "700px")
+            
+            ),
+    
+          
+          
         ),
+      
+
         
-        fluidRow(
-            column(4,
-                   h2("Summary of The Dataset"),
-                   wellPanel(
-                       multiInput("x",label = "Choose an X",choices = frame()),
-                       multiInput("y",label = "Choose an Y",choices = frame()),
-                       
-                   
+        tabItem(tabName = names[3],
+              
+                
+                fluidRow(
+                  tabBox(
+                    title = "10 Rows of the Data Transformation Process",
+                    # The id lets us use input$tabset1 on the server to find the current tab
+                    id = "tabset1", height = "450px",
+                    tabPanel("Tab1",
+                             actionButton("Data_Transform_Button","Transform Data Button"),
+                             fluidRow(
+                             tableOutput("processed_data")
+                             
+                             
+                             
+                             )),
+                    tabPanel("Tab2", "Tab content 2")
+                  ),
+                  tabBox(
+                    side = "left", height = "600px",
+                    selected = "Association Rules",
+                    tabPanel("Association Rules",
+                             actionButton("AR","Produce Association Rules"),
+                             fluidRow(
+                               tableOutput("AR_output")
+                             )
+                             ),
+                    tabPanel("Model Inspection", "Tab content 2"),
+                    tabPanel("Model Confirmation & Results")
+                  )
+                ),
+                
+        tabItem(tabName = names[4])
+        )
+        
         )
         )
-        ),
-        
-        
-        tabItem(tabName = names[3]),
-        tabItem(tabName = names[4]),
-        tabItem(tabName = names[5]),
-        tabItem(tabName = names[6]),
-        tabItem(tabName = names[7]),
-        tabItem(tabName = names[8]),
-        tabItem(tabName = names[9])
-        
-        )
-    )))
+  
     
         
 
@@ -99,48 +94,79 @@ names <- c("Ingestion","Transformation","Data Overview + Summary","Tuning","Attr
     )
 server <- function(input, output) {
     
-    output$shinyUI <- renderUI({
-        input$eval
-        eval(parse(text = isolate(input$code)))
-    })
+  ## TAB 1
+ 
+  
+  myData <- reactive({
+   if(input$datasets == "History"){
+      df <- readRDS("./rshiny_original_dataset.rds")
+      df  
+    }
+     else 
+      {
+      return (NULL)
+      }
+      
+  
     
-    ## Data Ingestion
-    output$contents <- renderTable({
-        
-        # input$file1 will be NULL initially. After the user selects
-        # and uploads a file, head of that data file by default,
-        # or all rows if selected, will be shown.
-        
-        req(input$file1)
-        
-        # when reading semicolon separated files,
-        # having a comma separator causes `read.csv` to error
-        tryCatch(
-            {
-                df <- read.csv(input$file1$datapath,
-                               header = input$header,
-                               sep = input$sep,
-                               quote = input$quote)
-            },
-            error = function(e) {
-                # return a safeError if a parsing error occurs
-                stop(safeError(e))
-            }
-        )
-        
-        if(input$disp == "head") {
-            return(head(df))
-        }
-        else {
-            return(df)
-        }
-        
-        ## Data Transformation
-        
-        output$frame <- reactive({output$contents()})
-        
+  })
+   output$contents <- DT::renderDataTable({
+     send_to_global <<- myData()
+      DT::datatable(myData())
+      
     })
+   
+   
+
     
+    ## TAB 2
+  
+   observeEvent(input$tabs,if(input$tabs == names[2]){
+      callModule(module = esquisserServer, id = "esquisse",data = send_to_global)
+     })
+       
+
+
+
+## Tab 3
+     
+observeEvent(input$Data_Transform_Button,{ 
+out <- reactive({
+  x <- data_transformation_function(send_to_global)
+    x <- as.data.frame(x)
+    ALL_FLAGS <<- x
+    x <- head(x,10)
+    x })
+
+    output$processed_data <- renderTable({out()})
+
+    
+    
+})
+observeEvent(input$AR,
+             if(exists("ALL_FLAGS") == TRUE && (input$AR == 1)) {
+  exeucte_function_first(ALL_FLAGS)
+               delete_tranpose()
+               
+             }
+  
+
+  else
+  {
+    
+  }
+)
 }
+  
+                                              
+                                            
+  
+
+
+
+
+      
+    
+
 
 shinyApp(ui, server)

@@ -75,7 +75,8 @@ db_hash <- micro_dby %>% as.data.frame()
 predictorNames <- setdiff(names(db_hash),"FLAG")
 predictor_ensemble <- "FLAG"
 # change all NAs to 0
-
+if(ENSEMBLE_FLAG == 0)
+{
 objTrain <-db_hash[Index,] %>% as.data.frame()
 objTrain2 <- objTrain[,predictorNames] %>% as.data.frame()
 
@@ -106,8 +107,28 @@ misClasificError <- mean(glmnetPredict != test_flags)
 print(paste('Accuracy',1-misClasificError))
 summary(glmnetModel)
 
-## Examine Base Model (Bias,Variance,Overfitting,Underfitting,Heteredoskedacity,Predictive Power)
-## IF Low Results , try ensembling
+
+## Model Validation
+#anova(mylogit, test="Chisq")
+r2_1 <- glmnetModel$glmnet.fit$dev.ratio[which(glmnetModel$glmnet.fit$lambda == glmnetModel$lambda.min)] %>% round(digits = 2)
+r2_2 <- glmnetModel$glmnet.fit$dev.ratio[which(glmnetModel$glmnet.fit$lambda == glmnetModel$lambda.1se)] %>% round(digits = 2)
+r2 <- ave(r2_1,r2_2)
+plot.cv.glmnet(glmnetModel)
+a <- coef(glmnetModel, s = "lambda.min")
+
+
+
+labels = as.numeric(glmnetPredict > 0.5) 
+labels[1:10] = abs(labels[1:10] - 1) # randomly make some labels not match predictions
+
+labels_reordered = labels[order(glmnetPredict, decreasing=TRUE)]
+roc_dat = data.frame(TPR=cumsum(labels_reordered)/sum(labels_reordered), FPR=cumsum(!labels_reordered)/sum(!labels_reordered))
+
+# plot the roc curve
+plot(roc_dat$FPR, roc_dat$TPR)
+
+}
+
 
 
 if(ENESEMBLE_FLAG == 1)
@@ -238,21 +259,3 @@ print(paste('Accuracy',1-misClasificError))
 
 
 
-## Model Validation
-#anova(mylogit, test="Chisq")
-r2_1 <- glmnetModel$glmnet.fit$dev.ratio[which(glmnetModel$glmnet.fit$lambda == glmnetModel$lambda.min)] %>% round(digits = 2)
-r2_2 <- glmnetModel$glmnet.fit$dev.ratio[which(glmnetModel$glmnet.fit$lambda == glmnetModel$lambda.1se)] %>% round(digits = 2)
-r2 <- ave(r2_1,r2_2)
-plot.cv.glmnet(glmnetModel)
-a <- coef(glmnetModel, s = "lambda.min")
-
-
-
-labels = as.numeric(glmnetPredict > 0.5) 
-labels[1:10] = abs(labels[1:10] - 1) # randomly make some labels not match predictions
-
-labels_reordered = labels[order(glmnetPredict, decreasing=TRUE)]
-roc_dat = data.frame(TPR=cumsum(labels_reordered)/sum(labels_reordered), FPR=cumsum(!labels_reordered)/sum(!labels_reordered))
-
-# plot the roc curve
-plot(roc_dat$FPR, roc_dat$TPR)

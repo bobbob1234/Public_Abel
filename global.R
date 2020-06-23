@@ -1,2 +1,3 @@
-source("library_wrapper.r")
-source()
+data <- reactiveValues(
+  mydata()
+)

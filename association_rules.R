@@ -120,7 +120,21 @@ for(i in 1:length(all_rules))
 gc()
 rm(rule_frames,high_rules,low_rules)
 gc()
-setwd("C:/Users/White/May 2020 Abel/2020 Abel/Model Outputs")
+getwd()
+if(shiny_running() == T){
+  dir <- getwd()
+  dir2 <<- paste(dir,"Model Outputs")
+  dir3 <<- paste(dir,"Rule Outputs")
+  
+  model_outputs <- dir3
+  
+  dir.create(dir2)
+  dir.create(dir3)
+} else {
+    setwd("C:/Users/White/May 2020 Abel/2020 Abel/Model Outputs")
+  }
+
+
 for(i in 1:50)
 {
   id <- i
@@ -147,7 +161,13 @@ for(i in 1:50)
 
   output_name <- paste("model",i,".csv")
   output_name <- gsub(" ","",output_name)
-  fwrite(model,output_name)
+  if(shiny_running() == T)
+  {
+    fwrite(model,dir2)
+  }
+  else{
+    fwrite(model,output_name)
+  }
 
 }
 
@@ -176,7 +196,12 @@ max_length <- max_row$maxl
   csv_path <- paste("C:/Users/White/abel/", "train-high-values--",TIME_RUN2,".csv")
   csv_path <- gsub(" ","",csv_path)
   relevant_rules2$FLAG <- "Y"
-  fwrite(relevant_rules2,csv_path)
+  if(shiny_running() ==  T)
+  {
+    fwrite(relevant_rules2,dir3)
+  }  else{
+    fwrite(relevant_rules2,csv_path)
+  }
 
   rule_set_y <- apriori (abf_n, parameter = list(supp = support,confidence = confidence,maxlen = max_length))
   rulesabf <- rule_set_y
@@ -190,6 +215,11 @@ max_length <- max_row$maxl
   csv_path <- paste("C:/Users/White/abel/", "train-low-values--",TIME_RUN2,".csv")
   csv_path <- gsub(" ","",csv_path)
   relevant_rules2$FLAG <- "N"
-  fwrite(relevant_rules2,csv_path)
+  if(shiny_running() ==  T)
+  {
+  fwrite(relevant_rules2,dir3)
+  } else{
+    fwrite(relevant_rules2,csv_path)
+  }
   
  rm(all_rules)

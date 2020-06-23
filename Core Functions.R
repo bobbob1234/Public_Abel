@@ -149,20 +149,21 @@ delete_meta <- function()
   gc(TRUE)
 }
 
-exeucte_function_first <- function()
+exeucte_function_first <- function(x)
 {
-  source("overview.R")
+  MASTER_TABLE <<- x
+  ALL_FLAGS <<- MASTER_TABLE
+  #source("overview.R")
   source("propensity_calculations.R")
-  holding_frames <- list()
-  holding_frames[[1]] <- ys
-  holding_frames[[2]] <- no
-  
-  
+  holding_frames <<- list()
+  holding_frames[[1]] <<- ys
+  holding_frames[[2]] <<- no
+  data_frame_count <<- 1
   for(data_frame_count in 1:length(holding_frames))
   {
-    ALL_FLAGS2 <- holding_frames[[data_frame_count]] %>% as.data.frame()
+    ALL_FLAGS2 <<- holding_frames[[data_frame_count]] %>% as.data.frame()
     ## Subsetting for columns that we need for processing
-    ALL_FLAGS <- ALL_FLAGS2[,c("id","revenue","channel","rank","start_time_utc")]
+    ALL_FLAGS <<- ALL_FLAGS2[,c("id","revenue","channel","rank","start_time_utc")]
     
     
     
@@ -171,7 +172,7 @@ exeucte_function_first <- function()
     
     tchs_above_thresh <- subset(listtchs,listtchs$Freq > 900) ## was 1000
     tchs_above_thresh$Var1 <- as.numeric(tchs_above_thresh$Var1)
-    maxtchs_above_tresh <- max(tchs_above_thresh$Var1)
+    maxtchs_above_tresh <<- max(tchs_above_thresh$Var1)
     unique_channels <- unique(ALL_FLAGS$channel) %>% as.data.frame()
     unique_channels$encode <- ""
     
@@ -187,8 +188,27 @@ exeucte_function_first <- function()
     unique_channels$encode <- as.numeric(unique_channels$encode)
     #source("C:/Users/White/abel/markov_chain_attribution.R")
     source("tranpose_prob.R")
+    data_frame_count <<- data_frame_count + 1
   }
-  delete_transpose()
   source("association_rules.R")
   
+}
+
+shiny_running = function () {
+  # Look for `runApp` call somewhere in the call stack.
+  frames = sys.frames()
+  calls = lapply(sys.calls(), `[[`, 1)
+  call_name = function (call)
+    if (is.function(call)) '<closure>' else deparse(call)
+  call_names = vapply(calls, call_name, character(1))
+  
+  target_call = grep('^runApp$', call_names)
+  
+  if (length(target_call) == 0)
+    return(FALSE)
+  
+  # Found a function called `runApp`, verify that it’s Shiny’s.
+  target_frame = frames[[target_call]]
+  namespace_frame = parent.env(target_frame)
+  isNamespace(namespace_frame) && environmentName(namespace_frame) == 'shiny'
 }

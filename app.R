@@ -5,9 +5,9 @@ options(shiny.maxRequestSize = 1000000000)
 options("esquisse.display.mode" = "browser")
 setwd('/srv/shiny-server/sample-apps/hello')
 
-source("rshiny_library.r")
-source("library_wrapper.r")
-source("Core Functions.r")
+source("rshiny_library.R")
+source("library_wrapper.R")
+source("Core Functions.R")
 names <- c("Ingestion","Orverview","Modelling","Traceback")
  sidebar <-  dashboardSidebar(
         sidebarMenu(

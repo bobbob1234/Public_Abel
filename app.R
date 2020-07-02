@@ -3,6 +3,7 @@ rm(list=ls())
 ## Setting Upload Size to 1GB
 options(shiny.maxRequestSize = 1000000000)
 options("esquisse.display.mode" = "browser")
+setwd('..')
 
 source("rshiny_library.r")
 source("library_wrapper.r")

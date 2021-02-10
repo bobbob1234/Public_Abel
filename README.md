@@ -12,10 +12,10 @@
 
 
 ## Future Updates(TBC)
-1) ~Automatic Definition of Support/Confidence Levels~
+1) ~Automatic Definition of Support/Confidence Levels~(Completed)
 2) Functionality for Multi Support Thresholds if required
-3) ~Model selection over more classification models(maybe try ensembling/stacking as a method to get high levels of  predictive power~
-4) Front-End Development( for simplicity)(Django Web App with User Authentication)
+3) ~Model selection over more classification models(maybe try ensembling/stacking as a method to get high levels of  predictive power~(Completed)
+4)  ~MFront-End Development( for simplicity)(Rshiny) ~ ( Completed)
 5) Deep Learning Prediction of New Sequences ?
 6) Automatic Recommendation of Retargeting Strategy ?
 7) Add more behavioural parameters to the sequence .
